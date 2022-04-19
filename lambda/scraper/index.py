@@ -13,5 +13,4 @@ def handler(event, context):
     print('request: {}'.format(json.dumps(event)))
 
     # Write to output bucket
-    output_bucket.put_object(
-        
+    output_bucket.put_object(Body=open('test.html', 'rb'), Key='test.html')
