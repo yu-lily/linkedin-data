@@ -2,8 +2,8 @@ import json
 import boto3
 import requests
 import os
-import undetected_chromedriver as uc
-driver = uc.Chrome()
+#import undetected_chromedriver as uc
+#driver = uc.Chrome()
 
 
 client = boto3.resource('s3')
@@ -16,9 +16,8 @@ def handler(event, context):
     print(event['url'])
     url = event['url']
     r = requests.get(url)
-    driver.get('https://nowsecure.nl')
     
     fname = url.replace('http://', '')
     fname = fname.replace('https://', '')
     fname = fname.replace('/', '')
-    output_bucket.put_object(Body=driver.page_source, Key=fname+ '.html')
+    output_bucket.put_object(Body=r.content, Key=fname+ '.html')
