@@ -21,7 +21,7 @@ class LinkedinDataStack(cdk.Stack):
                                   removal_policy=cdk.RemovalPolicy.DESTROY)
 
         LAMBDA_ENVS = {
-            "OUTPUT_TABLE": output_bucket.bucket_name,
+            "OUTPUT_BUCKET": output_bucket.bucket_name,
         }
 
         scraper_lambda = _lambda.Function(
