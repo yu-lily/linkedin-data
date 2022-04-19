@@ -1,6 +1,7 @@
 from aws_cdk import (
-    core as cdk
-    # aws_sqs as sqs,
+    core as cdk,
+    aws_lambda as _lambda,
+    aws_s3 as s3,
 )
 
 # For consistency with other languages, `cdk` is the preferred import name for
@@ -15,10 +16,31 @@ class LinkedinDataStack(cdk.Stack):
     def __init__(self, scope: cdk.Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        # The code that defines your stack goes here
+        # Output bucket
+        output_bucket = s3.Bucket(self, 'OutputBucket',
+                                  removal_policy=cdk.RemovalPolicy.DESTROY)
 
-        # example resource
-        # queue = sqs.Queue(
-        #     self, "LinkedinDataQueue",
-        #     visibility_timeout=cdk.Duration.seconds(300),
-        # )
+        LAMBDA_ENVS = {
+            "OUTPUT_TABLE": output_bucket.bucket_name,
+        }
+
+        scraper_lambda = _lambda.Function(
+            self, "ScraperLambda",
+            runtime=_lambda.Runtime.PYTHON_3_8,
+            handler='index.handler',
+            code=_lambda.Code.from_asset(
+                "lambda/scraper",
+                bundling=core.BundlingOptions(
+                    image=_lambda.Runtime.PYTHON_3_8.bundling_image,
+                    command=[
+                        "bash", "-c",
+                        "pip install --no-cache -r requirements.txt -t /asset-output && cp -au . /asset-output"
+                    ],
+                ),
+            ),
+            environment={**LAMBDA_ENVS},
+            timeout=core.Duration.minutes(1),
+            profiling=True,
+        )
+
+        output_bucket.grant_read_write(scraper_lambda)
